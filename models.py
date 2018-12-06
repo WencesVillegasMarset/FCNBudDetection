@@ -16,16 +16,16 @@ def mobilenet_8s(train_encoder = True, final_layer_activation='sigmoid'):
         layer.trainable = train_encoder
     
     #build decoder
-    predict = Conv2D(filters=1,kernel_size=1,strides=1)(net.output)
-    deconv2 = Conv2DTranspose(filters=1,kernel_size=4,strides=2, padding='same', use_bias=False)(predict)
-    pred_conv_pw_11_relu = Conv2D(filters=1,kernel_size=1,strides=1)(net.get_layer('conv_pw_11_relu').output)
-    fuse1 = Add()([deconv2, pred_conv_pw_11_relu])
-    pred_conv_pw_5_relu = Conv2D(filters=1,kernel_size=1,strides=1)(net.get_layer('conv_pw_5_relu').output)
-    deconv2fuse1 = Conv2DTranspose(filters=1,kernel_size=4,strides=2, padding='same', use_bias=False)(fuse1)
-    fuse2 = Add()([deconv2fuse1, pred_conv_pw_5_relu])
-    deconv8 = Conv2DTranspose(filters=1,kernel_size=16,strides=8, padding='same', use_bias=False, activation=final_layer_activation)(fuse2)
+        predict = Conv2D(filters=1,kernel_size=1,strides=1)(net.output)
+        deconv2 = Conv2DTranspose(filters=1,kernel_size=4,strides=2, padding='same', use_bias=False)(predict)
+        pred_conv_pw_11_relu = Conv2D(filters=1,kernel_size=1,strides=1)(net.get_layer('conv_pw_11_relu').output)
+        fuse1 = Add()([deconv2, pred_conv_pw_11_relu])
+        pred_conv_pw_5_relu = Conv2D(filters=1,kernel_size=1,strides=1)(net.get_layer('conv_pw_5_relu').output)
+        deconv2fuse1 = Conv2DTranspose(filters=1,kernel_size=4,strides=2, padding='same', use_bias=False)(fuse1)
+        fuse2 = Add()([deconv2fuse1, pred_conv_pw_5_relu])
+        deconv8 = Conv2DTranspose(filters=1,kernel_size=16,strides=8, padding='same', use_bias=False, activation=final_layer_activation)(fuse2)
 
-    return Model(inputs=net.input,outputs=deconv8)
+        return Model(inputs=net.input,outputs=deconv8)
 
 
 def mobilenet_16s(train_encoder = True, final_layer_activation='sigmoid'):

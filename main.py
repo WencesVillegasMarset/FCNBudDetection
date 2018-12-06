@@ -6,10 +6,10 @@ import train
 
 if __name__ == "__main__":
     model_list = [8,16,32]
-    lr_list = [0.001,0.0001,0.00001]
+    lr_list = [0.0001]#[0.001,0.0001,0.00001]
     batch_size_list = [4]
-    optimizer_list = ['adam', 'rmsprop', 'sgd']
-    lr_decay_list = ['0', '0.0005']
+    optimizer_list = ['adam', 'rmsprop']
+    lr_decay_list = [0] #['0', '0.0005']
     #load dataset csv
     train_set_full = pd.read_csv(os.path.join('/home','wvillegas','dataset-mask', 'single_instance_train.csv'))
     train_set_array = train_set_full['imageOrigin'].values
@@ -55,4 +55,3 @@ if __name__ == "__main__":
                                 'final_layer':'sigmoid'
                             }
                             model_name = train.train_model(**args)
-                            models.append(model_name)

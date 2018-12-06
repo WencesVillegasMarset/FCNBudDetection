@@ -63,6 +63,7 @@ def train_model(**kwargs):
     model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
 
     train_history = model.fit_generator(generator=train_generator, use_multiprocessing=True,workers=6, epochs=kwargs['epochs'])
+    
     model_name = str(kwargs['fold'])+'FCMN'+str(kwargs['model'])+kwargs['optimizer']+'_lr'+str(kwargs['lr'])+'_decay'+str(kwargs['decay'])+'_ep'+str(kwargs['epochs'])
 
     model.save(os.path.join(kwargs['models_folder'], model_name + '.h5'))
