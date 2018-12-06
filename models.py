@@ -1,3 +1,5 @@
+import os
+
 def mobilenet_8s(train_encoder = True, final_layer_activation='sigmoid'):
     '''
         This script creates a model object and loads its weights
@@ -8,7 +10,7 @@ def mobilenet_8s(train_encoder = True, final_layer_activation='sigmoid'):
     from keras.models import load_model
 
     net = MobileNet(include_top=False, weights=None)
-    net.load_weights('/home/wvillegas/DLProjects/PatchClassificationModelsResults/modelosV2/mobilenet_weights_detection.h5', by_name=True)
+    net.load_weights(os.path.join('/home','wvillegas','DLProjects','DetectionModels','mobilenet_weights_detection.h5'), by_name=True)
 
     for layer in net.layers:
         layer.trainable = train_encoder
@@ -36,7 +38,7 @@ def mobilenet_16s(train_encoder = True, final_layer_activation='sigmoid'):
     from keras.models import load_model
 
     net = MobileNet(include_top=False, weights=None)
-    net.load_weights('/home/wvillegas/DLProjects/PatchClassificationModelsResults/modelosV2/mobilenet_weights_detection.h5', by_name=True)
+    net.load_weights(os.path.join('/home','wvillegas','DLProjects','DetectionModels','mobilenet_weights_detection.h5'), by_name=True)
 
     for layer in net.layers:
         layer.trainable = train_encoder
@@ -61,7 +63,7 @@ def mobilenet_32s(train_encoder = True, final_layer_activation='sigmoid'):
     from keras.models import load_model
 
     net = MobileNet(include_top=False, weights=None)
-    net.load_weights('/home/wvillegas/DLProjects/PatchClassificationModelsResults/modelosV2/mobilenet_weights_detection.h5', by_name=True)
+    net.load_weights(os.path.join('/home','wvillegas','DLProjects','DetectionModels','mobilenet_weights_detection.h5'), by_name=True)
 
     for layer in net.layers:
         layer.trainable = train_encoder
