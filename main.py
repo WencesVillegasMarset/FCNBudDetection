@@ -2,6 +2,8 @@ import os
 from sklearn.model_selection import KFold
 import pandas as pd
 import numpy as np
+import train
+
 if __name__ == "__main__":
     model_list = [8,16,32]
     lr_list = [0.001,0.0001,0.00001]
@@ -18,20 +20,24 @@ if __name__ == "__main__":
     for train_index, test_index in kf.split(train_set_array):
         train_indexes.append(train_index)
         test_indexes.append(test_index)
+    #save indexes arrays
+    np.save('./train_indexes.npy', np.asarray(train_indexes))
+    np.save('./test_indexes.npy', np.asarray(test_indexes))
 
 
     labels = dict(zip(list(train_set_full['imageOrigin'].values), list(train_set_full['mask'].values)))
 
-
+    models = []
     for model in model_list:
         for bs in batch_size_list:
             for decay in lr_decay_list:
                 for lr in lr_list:
                     for optimizer in optimizer_list:
-                        for i in np.arange(0,len(train_indexes)):
-                            partition = {'train':list(train_set_array[train_indexes[i]]),
-                                'test': list(train_set_array[test_indexes[i]])}
+                        for fold in np.arange(0,len(train_indexes)):
+                            partition = {'train':list(train_set_array[train_indexes[fold]]),
+                                'test': list(train_set_array[test_indexes[fold]])}
                             args = {
+                                'fold': fold,
                                 'model':model,
                                 'batch_size':bs,
                                 'train_encoder':True,
@@ -48,3 +54,5 @@ if __name__ == "__main__":
                                 'history_folder':os.path.join('/home','wvillegas','DLProjects','DetectionModels', 'trainhist'),
                                 'final_layer':'sigmoid'
                             }
+                            model_name = train.train_model(**args)
+                            models.append(model_name)

@@ -55,11 +55,13 @@ def train_model(**kwargs):
 
     train_history = model.fit_generator(generator=train_generator,validation_data=valid_generator,
                             use_multiprocessing=True,workers=6, epochs=kwargs['epochs'])
+    model_name = str(kwargs['fold'])+'FCMN'+str(kwargs['model'])+kwargs['optimizer']+'_lr'+str(kwargs['lr'])+'_decay'+str(kwargs['decay'])+'_ep'+str(kwargs['epochs'])
 
-    model.save(os.path.join(kwargs['models_folder'], 'FCMN'+str(kwargs['model']+kwargs['optimizer']+str(kwargs['epochs'])+'.h5')))
+    model.save(os.path.join(kwargs['models_folder'], model_name + '.h5'))
 
     history_csv = pd.DataFrame(train_history.history)
-    history_csv.to_csv(os.path.join(kwargs['history_folder'], 'FCMN'+str(kwargs['model']+kwargs['optimizer']+str(kwargs['epochs'])+'.csv')))
+    history_csv.to_csv(os.path.join(kwargs['history_folder'], model_name +'.csv'))
+    return model_name
 
 
     
