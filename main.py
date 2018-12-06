@@ -35,7 +35,7 @@ if __name__ == "__main__":
                     for optimizer in optimizer_list:
                         for fold in np.arange(0,len(train_indexes)):
                             partition = {'train':list(train_set_array[train_indexes[fold]]),
-                                'test': list(train_set_array[test_indexes[fold]])}
+                                'valid': list(train_set_array[test_indexes[fold]])}
                             args = {
                                 'fold': fold,
                                 'model':model,
