@@ -17,7 +17,7 @@ def train_model(**kwargs):
             'optimizer': name of the optimizer to use (sgd, adam, rmsprop or nadam) (string)
             'lr': learning rate (float)
             'momentum': momentum (float)
-            'decay': weight decay (float)
+            'decay': lr decay (float)
             'epochs': number of epochs (int)
             'models_folder': target folder and filename for h5 model file (string)
             'history_folder': target folder and filename for csv history file (string)
@@ -48,19 +48,15 @@ def train_model(**kwargs):
         optimizer = RMSprop()
     elif kwargs['optimizer'] == 'adam':
         from keras.optimizers import Adam
-        optimizer = Adam()
-    elif kwargs['optimizer'] == 'nadam':
-        from keras.optimizers import Nadam
-        optimizer = Nadam()
-    
+        optimizer = Adam()    
 
     train_history = model.fit_generator(generator=train_generator,validation_data=valid_generator,
                             use_multiprocessing=True,workers=6, epochs=kwargs['epochs'])
 
-    model.save(kwargs['models_folder'])
+    model.save(os.path.join(kwargs['models_folder'], 'FCMN'+str(kwargs['model']+kwargs['optimizer']+str(kwargs['epochs'])+'.h5')))
 
     history_csv = pd.DataFrame(train_history.history)
-    history_csv.to_csv(kwargs['history_folder'])
+    history_csv.to_csv(os.path.join(kwargs['history_folder'], 'FCMN'+str(kwargs['model']+kwargs['optimizer']+str(kwargs['epochs'])+'.csv')))
 
 
     
