@@ -21,6 +21,7 @@ def train_model(**kwargs):
             'epochs': number of epochs (int)
             'models_folder': target folder and filename for h5 model file (string)
             'history_folder': target folder and filename for csv history file (string)
+            'final_layer': name of the final layer activation, linear or sigmoid (str)
     '''
 
     if kwargs['model'] == 8:
@@ -49,6 +50,8 @@ def train_model(**kwargs):
     elif kwargs['optimizer'] == 'adam':
         from keras.optimizers import Adam
         optimizer = Adam()    
+
+    model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
 
     train_history = model.fit_generator(generator=train_generator,validation_data=valid_generator,
                             use_multiprocessing=True,workers=6, epochs=kwargs['epochs'])

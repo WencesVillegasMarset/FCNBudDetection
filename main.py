@@ -1,17 +1,50 @@
+import os
+from sklearn.model_selection import KFold
+import pandas as pd
+import numpy as np
 if __name__ == "__main__":
-    args = {
-        'model':8,
-        'batch_size':4,
-        'train_encoder':True,
-        'img_path':,
-        'masks_path':,
-        'partition':,
-        'labels':,
-        'optimizer':'rmsprop',
-        'lr':0.0001,
-        'momentum':0.9,
-        'decay':0,
-        'epochs':50,
-        'models_folder':'',
-        'history_folder':'',
-    }
+    model_list = [8,16,32]
+    lr_list = [0.001,0.0001,0.00001]
+    batch_size_list = [4]
+    optimizer_list = ['adam', 'rmsprop', 'sgd']
+    lr_decay_list = ['0', '0.0005']
+    #load dataset csv
+    train_set_full = pd.read_csv(os.path.join('/home','wvillegas','dataset-mask', 'single_instance_train.csv'))
+    train_set_array = train_set_full['imageOrigin'].values
+    # split it into 4 folds
+    kf = KFold(n_splits = 4, shuffle=False)
+    train_indexes = []
+    test_indexes = []
+    for train_index, test_index in kf.split(train_set_array):
+        train_indexes.append(train_index)
+        test_indexes.append(test_index)
+
+
+    labels = dict(zip(list(train_set_full['imageOrigin'].values), list(train_set_full['mask'].values)))
+
+
+    for model in model_list:
+        for bs in batch_size_list:
+            for decay in lr_decay_list:
+                for lr in lr_list:
+                    for optimizer in optimizer_list:
+                        for i in np.arange(0,len(train_indexes)):
+                            partition = {'train':list(train_set_array[train_indexes[i]]),
+                                'test': list(train_set_array[test_indexes[i]])}
+                            args = {
+                                'model':model,
+                                'batch_size':bs,
+                                'train_encoder':True,
+                                'img_path':os.path.join('/home','wvillegas','dataset-mask','dataset_resize', 'images_resize'),
+                                'masks_path':os.path.join('/home','wvillegas','dataset-mask','dataset_resize', 'masks_resize'),
+                                'partition':partition,
+                                'labels':labels,
+                                'optimizer':optimizer,
+                                'lr':lr,
+                                'momentum':0.9,
+                                'decay':decay,
+                                'epochs':35,
+                                'models_folder':os.path.join('/home','wvillegas','DLProjects','DetectionModels', 'scriptmodels'),
+                                'history_folder':os.path.join('/home','wvillegas','DLProjects','DetectionModels', 'trainhist'),
+                                'final_layer':'sigmoid'
+                            }
