@@ -1,0 +1,1 @@
+Segunda iteracion de Adam (en el 2do Fold) falló y tiro NAN

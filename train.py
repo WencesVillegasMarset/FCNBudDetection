@@ -105,7 +105,7 @@ def train_model(**kwargs):
             pred = (prediction[i,:,:,0] > threshold).astype(bool)
             #save sample name
             sample_name = kwargs['partition']['valid'][i]
-            valid_metrics['sample'].append()
+            valid_metrics['sample'].append(sample_name)
             #get mask and preprocess
             mask_name = kwargs['labels'][sample_name]
             mask = cv2.imread(kwargs['masks_path'] + '/' + mask_name)
