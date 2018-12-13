@@ -65,7 +65,7 @@ def train_model(**kwargs):
     train_history = model.fit_generator(generator=train_generator, use_multiprocessing=True,workers=6, epochs=kwargs['epochs'])
     
     model_name = str(kwargs['fold'])+'FCMN'+str(kwargs['model'])+kwargs['optimizer']+'_lr'+str(kwargs['lr'])+'_decay'+str(kwargs['decay'])+'_ep'+str(kwargs['epochs'])
-
+    print(model_name)
     model.save(os.path.join(kwargs['models_folder'], model_name + '.h5'))
 
     history_csv = pd.DataFrame(train_history.history)
@@ -76,9 +76,9 @@ def train_model(**kwargs):
         list_IDs=kwargs['partition']['valid'],n_channels=3, n_channels_label=1,shuffle=False,mask_path=kwargs['masks_path'])
 
     prediction = model.predict_generator(generator=valid_generator,use_multiprocessing=True,workers=6, verbose=True)
+    
 
-
-    threshold_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+    threshold_list = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]
 
     valid_metrics = {
         'threshold':[],
@@ -98,21 +98,21 @@ def train_model(**kwargs):
         'x_size':[],
         'y_size':[]
     }
-    for threshold in threshold_list:    
+    for threshold in threshold_list:  
+        array_pred = np.copy(prediction)
         for i in np.arange(0,prediction.shape[0]):
             valid_metrics['threshold'].append(threshold)
             #get prediction and normalize
-            pred = (prediction[i,:,:,0] > threshold).astype(bool)
+            pred = cv2.normalize(array_pred[i,:,:,0], None, 0, 1, cv2.NORM_MINMAX)
+            pred = (pred > threshold).astype(bool)
             #save sample name
-            sample_name = kwargs['partition']['valid'][i]
-            valid_metrics['sample'].append(sample_name)
+            valid_metrics['sample'].append(test_images[i])
             #get mask and preprocess
-            mask_name = kwargs['labels'][sample_name]
-            mask = cv2.imread(kwargs['masks_path'] + '/' + mask_name)
+            mask_name = labels[test_images[i]]
+            mask = cv2.imread(masks_path + '/' + mask_name)
             mask = cv2.resize(mask, (0,0), fx=0.5, fy=0.5)
             mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
             mask = mask.astype(bool)
-
             #compute iou and areas
             intersection = np.sum(np.logical_and(pred, mask))
             union = np.sum(np.logical_or(pred, mask))
@@ -125,6 +125,12 @@ def train_model(**kwargs):
             valid_metrics['union'].append(union)
             valid_metrics['gt_area'].append(mask_area)
             valid_metrics['segmentation_area'].append(prediction_area)
+            #compute mass centers without binaryzing
+        array_pred = np.copy(prediction) #reset prediction array
+        for i in np.arange(0,prediction.shape[0]):
+            pred = array_pred[i,:,:,0]
+            pred = cv2.normalize(array_pred[i,:,:,0], None, 0, 1, cv2.NORM_MINMAX)
+            pred[pred < threshold] = 0
             gt_center = mass_center(mask)
             segmentation_center = mass_center(pred)
             distance = np.subtract(gt_center,segmentation_center)

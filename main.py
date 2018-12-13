@@ -49,7 +49,7 @@ if __name__ == "__main__":
                                 'lr':lr,
                                 'momentum':0.9,
                                 'decay':decay,
-                                'epochs':35,
+                                'epochs':60,
                                 'models_folder':os.path.join('/home','wvillegas','DLProjects','DetectionModels', 'scriptmodels'),
                                 'history_folder':os.path.join('/home','wvillegas','DLProjects','DetectionModels', 'trainhist'),
                                 'final_layer':'sigmoid'
