@@ -79,28 +79,31 @@ def train_model(**kwargs):
     
 
     threshold_list = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]
-
+    test_images = kwargs['partition']['valid']
+    labels = kwargs['labels']
     valid_metrics = {
-        'threshold':[],
-        'sample':[],
-        'iou':[],
-        'intersection':[],
-        'union':[],
-        'gt_area':[],
-        'segmentation_area':[],
-        'gt_x_center':[],
-        'gt_y_center':[],
-        'segmentation_x_center':[],
-        'segmentation_y_center':[],
-        'x_distance':[],
-        'y_distance':[],
-        'euclidean_distance':[],
-        'x_size':[],
-        'y_size':[]
-    }
+            'model_name': [],
+            'threshold':[],
+            'sample':[],
+            'iou':[],
+            'intersection':[],
+            'union':[],
+            'gt_area':[],
+            'segmentation_area':[],
+            'gt_x_center':[],
+            'gt_y_center':[],
+            'segmentation_x_center':[],
+            'segmentation_y_center':[],
+            'x_distance':[],
+            'y_distance':[],
+            'euclidean_distance':[],
+            'x_size':[],
+            'y_size':[]
+        }
     for threshold in threshold_list:  
         array_pred = np.copy(prediction)
         for i in np.arange(0,prediction.shape[0]):
+            valid_metrics['model_name'].append(model_name)
             valid_metrics['threshold'].append(threshold)
             #get prediction and normalize
             pred = cv2.normalize(array_pred[i,:,:,0], None, 0, 1, cv2.NORM_MINMAX)
@@ -131,6 +134,12 @@ def train_model(**kwargs):
             pred = array_pred[i,:,:,0]
             pred = cv2.normalize(array_pred[i,:,:,0], None, 0, 1, cv2.NORM_MINMAX)
             pred[pred < threshold] = 0
+            #get mask
+            mask_name = labels[test_images[i]]
+            mask = cv2.imread(masks_path + '/' + mask_name)
+            mask = cv2.resize(mask, (0,0), fx=0.5, fy=0.5)
+            mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
+            mask = mask.astype(bool)
             gt_center = mass_center(mask)
             segmentation_center = mass_center(pred)
             distance = np.subtract(gt_center,segmentation_center)
