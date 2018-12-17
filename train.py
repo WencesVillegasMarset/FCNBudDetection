@@ -112,7 +112,7 @@ def train_model(**kwargs):
             valid_metrics['sample'].append(test_images[i])
             #get mask and preprocess
             mask_name = labels[test_images[i]]
-            mask = cv2.imread(masks_path + '/' + mask_name)
+            mask = cv2.imread(kwargs['masks_path'] + '/' + mask_name)
             mask = cv2.resize(mask, (0,0), fx=0.5, fy=0.5)
             mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
             mask = mask.astype(bool)
@@ -136,7 +136,7 @@ def train_model(**kwargs):
             pred[pred < threshold] = 0
             #get mask
             mask_name = labels[test_images[i]]
-            mask = cv2.imread(masks_path + '/' + mask_name)
+            mask = cv2.imread(kwargs['masks_path'] + '/' + mask_name)
             mask = cv2.resize(mask, (0,0), fx=0.5, fy=0.5)
             mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
             mask = mask.astype(bool)
