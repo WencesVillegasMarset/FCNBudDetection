@@ -78,7 +78,7 @@ def train_model(**kwargs):
     prediction = model.predict_generator(generator=valid_generator,use_multiprocessing=True,workers=6, verbose=True)
     
 
-    threshold_list = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]
+    threshold_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
     test_images = kwargs['partition']['valid']
     labels = kwargs['labels']
     valid_metrics = {
