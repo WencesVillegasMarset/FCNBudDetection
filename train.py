@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 import models
-from utils import DataGeneratorMobileNet
+from utils import DataGeneratorMobileNetKeras, DataGeneratorMobileNet
 import numpy as np
 import cv2
 
@@ -39,17 +39,21 @@ def train_model(**kwargs):
 
     if kwargs['model'] == 8:
         model = models.mobilenet_8s(train_encoder=kwargs['train_encoder'],
-            final_layer_activation=kwargs['final_layer'])
+            final_layer_activation=kwargs['final_layer'],prep=kwargs['preprocessing'])
     elif kwargs['model'] == 16:
         model = models.mobilenet_16s(train_encoder=kwargs['train_encoder'],
-            final_layer_activation=kwargs['final_layer'])
+            final_layer_activation=kwargs['final_layer'],prep=kwargs['preprocessing'])
     elif kwargs['model'] == 32:
         model = models.mobilenet_32s(train_encoder=kwargs['train_encoder'],
-            final_layer_activation=kwargs['final_layer'])
-
-    train_generator = DataGeneratorMobileNet(batch_size=kwargs['batch_size'],img_path=kwargs['img_path'],
-                                labels=kwargs['labels'],list_IDs=kwargs['partition']['train'],n_channels=3,
-                                n_channels_label=1,shuffle=True,mask_path=kwargs['masks_path'])
+            final_layer_activation=kwargs['final_layer'],prep=kwargs['preprocessing'])
+    if kwargs['preprocessing'] == True:
+        train_generator = DataGeneratorMobileNetKeras(batch_size=kwargs['batch_size'],img_path=kwargs['img_path'],
+                                    labels=kwargs['labels'],list_IDs=kwargs['partition']['train'],n_channels=3,
+                                    n_channels_label=1,shuffle=True,mask_path=kwargs['masks_path'])
+    else:
+        train_generator = DataGeneratorMobileNet(batch_size=kwargs['batch_size'],img_path=kwargs['img_path'],
+                                    labels=kwargs['labels'],list_IDs=kwargs['partition']['train'],n_channels=3,
+                                    n_channels_label=1,shuffle=True,mask_path=kwargs['masks_path'])
     if kwargs['optimizer'] == 'sgd':
         from keras.optimizers import SGD
         optimizer = SGD(lr=kwargs['lr'], momentum=kwargs['momentum'], decay=kwargs['decay'])
@@ -64,16 +68,23 @@ def train_model(**kwargs):
 
     train_history = model.fit_generator(generator=train_generator, use_multiprocessing=True,workers=6, epochs=kwargs['epochs'])
     
-    model_name = str(kwargs['fold'])+'FCMN'+str(kwargs['model'])+kwargs['optimizer']+'_lr'+str(kwargs['lr'])+'_decay'+str(kwargs['decay'])+'_ep'+str(kwargs['epochs'])
+    if kwargs['preprocessing'] == True:
+        model_name = str(kwargs['fold'])+'FCMN'+str(kwargs['model'])+kwargs['optimizer']+'_lr'+str(kwargs['lr'])+'_prep_mobilenet'+'_ep'+str(kwargs['epochs'])
+    else:
+        model_name = str(kwargs['fold'])+'FCMN'+str(kwargs['model'])+kwargs['optimizer']+'_lr'+str(kwargs['lr'])+'_prep_wences'+'_ep'+str(kwargs['epochs'])        
     print(model_name)
     model.save(os.path.join(kwargs['models_folder'], model_name + '.h5'))
 
     history_csv = pd.DataFrame(train_history.history)
     history_csv.to_csv(os.path.join(kwargs['history_folder'], model_name +'.csv'))
     #compute validation metrics
-
-    valid_generator = DataGeneratorMobileNet(batch_size=1,img_path=kwargs['img_path'], labels=kwargs['labels'],
-        list_IDs=kwargs['partition']['valid'],n_channels=3, n_channels_label=1,shuffle=False,mask_path=kwargs['masks_path'])
+    if kwargs['preprocessing'] == True:
+        valid_generator = DataGeneratorMobileNetKeras(batch_size=1,img_path=kwargs['img_path'], labels=kwargs['labels'],
+            list_IDs=kwargs['partition']['valid'],n_channels=3, n_channels_label=1,shuffle=False,mask_path=kwargs['masks_path'])
+    else:
+        valid_generator = DataGeneratorMobileNet(batch_size=1,img_path=kwargs['img_path'], labels=kwargs['labels'],
+            list_IDs=kwargs['partition']['valid'],n_channels=3, n_channels_label=1,shuffle=False,mask_path=kwargs['masks_path'])
+        
 
     prediction = model.predict_generator(generator=valid_generator,use_multiprocessing=True,workers=6, verbose=True)
     
@@ -128,11 +139,10 @@ def train_model(**kwargs):
             valid_metrics['union'].append(union)
             valid_metrics['gt_area'].append(mask_area)
             valid_metrics['segmentation_area'].append(prediction_area)
-            #compute mass centers without binaryzing
+            #compute mass centers without binarizing
         array_pred = np.copy(prediction) #reset prediction array
         for i in np.arange(0,prediction.shape[0]):
             pred = array_pred[i,:,:,0]
-            pred = cv2.normalize(array_pred[i,:,:,0], None, 0, 1, cv2.NORM_MINMAX)
             pred[pred < threshold] = 0
             #get mask
             mask_name = labels[test_images[i]]
@@ -154,7 +164,7 @@ def train_model(**kwargs):
             valid_metrics['y_size'].append(pred.shape[1])
     data = pd.DataFrame(valid_metrics)
     data.to_csv(os.path.join('/home','wvillegas','DLProjects','DetectionModels','validation_metrics', 'valid' + model_name +'.csv'))
-    return model_name
+    print(model_name + ' report finished!')
 
 
     
