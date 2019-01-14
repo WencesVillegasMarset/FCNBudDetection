@@ -3,6 +3,7 @@ import os, cv2
 import numpy as np
 import models
 from utils import DataGeneratorMobileNetKeras, DataGeneratorMobileNet
+import re
 
 def mass_center(mask):
     #calculate mass center from top-left corner
@@ -107,3 +108,26 @@ def validate(**kwargs):
     data.to_csv(csv_path)
     print(kwargs['model_name'] + ' report finished!')
     return csv_path
+
+if __name__ == "__main__":
+    list_models = pd.read_csv('models_to_validate.csv')
+    list_models = list_models.iloc[:,0]
+    args = {}
+    for model in list_models:
+        if(re.search(r'mobilenet', model) != None):
+            args['preprocessing'] = True
+        else:
+            args['preprocessing'] = False
+
+        test_set = pd.read_csv(os.path.join('/home','wvillegas','dataset-mask', 'single_instance_test.csv'))
+        test_set_array = test_set['imageOrigin'].values
+        args['partition'] = {
+            'train':[],
+            'valid':test_set_array
+        }
+
+        args['labels'] = dict(zip(list(test_set['imageOrigin'].values), list(test_set['mask'].values)))
+        args['model_name'] = model
+        args['img_path'] = os.path.join('/home','wvillegas','dataset-mask','dataset_resize', 'images_resize'),
+        args['masks_path'] = os.path.join('/home','wvillegas','dataset-mask','dataset_resize', 'masks_resize'),
+        args['validation_folder'] = os.path.join('.','output','validation')

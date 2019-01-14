@@ -2,12 +2,12 @@ import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import re
+import re 
 
 def generate_plots(**kwargs):
 
     csv_list = pd.read_csv(kwargs['csv_path'])
-    csv_list = csv_list.loc[:,0].values
+    csv_list = csv_list.iloc[:,0].values
     frames = []
     for csv in csv_list:
         frames.append(pd.read_csv('./csv/'+csv))
