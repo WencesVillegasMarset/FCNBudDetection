@@ -26,7 +26,7 @@ def validate(**kwargs):
         valid_generator = DataGeneratorMobileNet(batch_size=1,img_path=kwargs['img_path'], labels=kwargs['labels'],
             list_IDs=kwargs['partition']['valid'],n_channels=3, n_channels_label=1,shuffle=False,mask_path=kwargs['masks_path'])
         
-    model = models.load_model(os.path.join('.','output', 'models', kwargs['model_name']))
+    model = models.load_model(os.path.join('.','output', 'models', kwargs['model_name']+'.h5'))
     prediction = model.predict_generator(generator=valid_generator,use_multiprocessing=True,workers=6, verbose=True)
 
 
@@ -104,7 +104,7 @@ def validate(**kwargs):
             valid_metrics['x_size'].append(pred.shape[0])
             valid_metrics['y_size'].append(pred.shape[1])
     data = pd.DataFrame(valid_metrics)
-    csv_path = os.path.join(kwargs['validation_folder'] + kwargs['model_name'] + '.csv')
+    csv_path = os.path.join(kwargs['validation_folder'], kwargs['model_name'] + '.csv')
     data.to_csv(csv_path)
     print(kwargs['model_name'] + ' report finished!')
     return csv_path

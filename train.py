@@ -69,9 +69,6 @@ def train_model(**kwargs):
     history_csv = pd.DataFrame(train_history.history)
     history_csv.to_csv(os.path.join(kwargs['history_folder'], model_name +'.csv'))
 
-    return model_name
-
-
-    
+    return model_name   
         
         

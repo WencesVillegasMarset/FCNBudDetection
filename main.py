@@ -8,23 +8,23 @@ if __name__ == "__main__":
     model_list = [8,16,32]
     lr_list = [0.0001]#[0.001,0.0001,0.00001]
     batch_size_list = [4]
-    optimizer_list = ['rmsprop','adam']
+    optimizer_list = ['rmsprop']
     lr_decay_list = [0] #['0', '0.0005'] 
-    preprocessing_list = [True, False]
-    epoch_list = [150,110,75]
+    preprocessing_list = [True]
+    epoch_list = [200]
     #load dataset csv
     train_set_full = pd.read_csv(os.path.join('/home','wvillegas','dataset-mask', 'single_instance_train.csv'))
     train_set_array = train_set_full['imageOrigin'].values
 #     split it into 4 folds
-    kf = KFold(n_splits = 4, shuffle=False)
-    train_indexes = []
-    test_indexes = []
-    for train_index, test_index in kf.split(train_set_array):
-        train_indexes.append(train_index)
-        test_indexes.append(test_index)
-    #save indexes arrays
-    np.save('./train_indexes.npy', np.asarray(train_indexes))
-    np.save('./test_indexes.npy', np.asarray(test_indexes))
+#     kf = KFold(n_splits = 4, shuffle=False)
+#     train_indexes = []
+#     test_indexes = []
+#     for train_index, test_index in kf.split(train_set_array):
+#         train_indexes.append(train_index)
+#         test_indexes.append(test_index)
+#     #save indexes arrays
+#     np.save('./train_indexes.npy', np.asarray(train_indexes))
+#     np.save('./test_indexes.npy', np.asarray(test_indexes))
     #create output directories
     out_models = os.path.join('.','output', 'models')
     out_history = os.path.join('.','output', 'history')
@@ -40,11 +40,11 @@ if __name__ == "__main__":
 
     models = []
     for model in model_list:
-        for fold in np.arange(0,len(train_indexes)):
-            partition = {'train':list(train_set_array[train_indexes[fold]]),
-                'valid': list(train_set_array[test_indexes[fold]])}
-#                             partition = {'train':list(train_set_full['imageOrigin'].values),
-#                                            'valid':[] }
+#         for fold in np.arange(0,len(train_indexes)):
+#             partition = {'train':list(train_set_array[train_indexes[fold]]),
+#                 'valid': list(train_set_array[test_indexes[fold]])}
+            partition = {'train':list(train_set_full['imageOrigin'].values),
+                           'valid':[] }
             for bs in batch_size_list:
                 for decay in lr_decay_list:
                     for lr in lr_list:
@@ -52,7 +52,7 @@ if __name__ == "__main__":
                             for optimizer in optimizer_list:
                                 for prep in preprocessing_list:
                                         args = {
-                                            'fold': fold,
+                                            'fold': 0,
                                             'model':model,
                                             'batch_size':bs,
                                             'train_encoder':True,
