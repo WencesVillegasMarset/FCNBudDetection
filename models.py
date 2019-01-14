@@ -1,19 +1,19 @@
 import os
+from keras.applications import MobileNet
+from keras.layers import Conv2DTranspose,Conv2D,Add
+from keras import Model
+from keras.models import load_model
 
 def mobilenet_8s(train_encoder = True, final_layer_activation='sigmoid',prep=True):
     '''
-        This script creates a model object and loads its weights
+        This script creates a model object and loads pretrained weights 
     '''
-    from keras.applications import MobileNet
-    from keras.layers import Conv2DTranspose,Conv2D,Add
-    from keras import Model
-    from keras.models import load_model
 
     net = MobileNet(include_top=False, weights=None)
     if prep == True:
-        net.load_weights(os.path.join('/home','wvillegas','DLProjects','DetectionModels','keras_preprocessing_weights.h5'), by_name=True)
+        net.load_weights(os.path.join('.','keras_preprocessing_weights.h5'), by_name=True)
     else:
-        net.load_weights(os.path.join('/home','wvillegas','DLProjects','DetectionModels','wences_preprocessing_weights.h5'), by_name=True)
+        net.load_weights(os.path.join('.','wences_preprocessing_weights.h5'), by_name=True)
 
     for layer in net.layers:
         layer.trainable = train_encoder
@@ -33,18 +33,13 @@ def mobilenet_8s(train_encoder = True, final_layer_activation='sigmoid',prep=Tru
 
 def mobilenet_16s(train_encoder = True, final_layer_activation='sigmoid',prep=True):
     '''
-        This script creates a model object and loads its weights
+        This script creates a model object and loads pretrained weights 
     '''
-    from keras.applications import MobileNet
-    from keras.layers import Conv2DTranspose,Conv2D,Add
-    from keras import Model
-    from keras.models import load_model
-
     net = MobileNet(include_top=False, weights=None)
     if prep == True:
-        net.load_weights(os.path.join('/home','wvillegas','DLProjects','DetectionModels','keras_preprocessing_weights.h5'), by_name=True)
+        net.load_weights(os.path.join('.','keras_preprocessing_weights.h5'), by_name=True)
     else:
-        net.load_weights(os.path.join('/home','wvillegas','DLProjects','DetectionModels','wences_preprocessing_weights.h5'), by_name=True)
+        net.load_weights(os.path.join('.','wences_preprocessing_weights.h5'), by_name=True)
 
     for layer in net.layers:
         layer.trainable = train_encoder
@@ -61,18 +56,14 @@ def mobilenet_16s(train_encoder = True, final_layer_activation='sigmoid',prep=Tr
 
 def mobilenet_32s(train_encoder = True, final_layer_activation='sigmoid',prep=True):
     '''
-        This script creates a model object and loads its weights
+        This script creates a model object and loads pretrained weights 
     '''
-    from keras.applications import MobileNet
-    from keras.layers import Conv2DTranspose,Conv2D,Add
-    from keras import Model
-    from keras.models import load_model
 
     net = MobileNet(include_top=False, weights=None)
     if prep == True:
-        net.load_weights(os.path.join('/home','wvillegas','DLProjects','DetectionModels','keras_preprocessing_weights.h5'), by_name=True)
+        net.load_weights(os.path.join('.','keras_preprocessing_weights.h5'), by_name=True)
     else:
-        net.load_weights(os.path.join('/home','wvillegas','DLProjects','DetectionModels','wences_preprocessing_weights.h5'), by_name=True)
+        net.load_weights(os.path.join('.','wences_preprocessing_weights.h5'), by_name=True)
 
     for layer in net.layers:
         layer.trainable = train_encoder

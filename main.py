@@ -2,7 +2,7 @@ import os
 from sklearn.model_selection import KFold
 import pandas as pd
 import numpy as np
-import train
+import train, validation 
 
 if __name__ == "__main__":
     model_list = [8,16,32]
@@ -25,7 +25,16 @@ if __name__ == "__main__":
     #save indexes arrays
     np.save('./train_indexes.npy', np.asarray(train_indexes))
     np.save('./test_indexes.npy', np.asarray(test_indexes))
-
+    #create output directories
+    out_models = os.path.join('.','output', 'models')
+    out_history = os.path.join('.','output', 'history')
+    out_validation = os.path.join('.','output', 'validation')
+    if not os.path.exists(out_models):
+        os.makedirs(out_models)
+    if not os.path.exists(out_history):
+        os.makedirs(out_history) 
+    if not os.path.exists(out_validation):
+        os.makedirs(out_validation)
 
     labels = dict(zip(list(train_set_full['imageOrigin'].values), list(train_set_full['mask'].values)))
 
@@ -56,9 +65,12 @@ if __name__ == "__main__":
                                             'momentum':0.9,
                                             'decay':decay,
                                             'epochs':epoch,
-                                            'models_folder':os.path.join('/home','wvillegas','DLProjects','DetectionModels', 'scriptmodels'),
-                                            'history_folder':os.path.join('/home','wvillegas','DLProjects','DetectionModels', 'trainhist'),
+                                            'models_folder':out_models,
+                                            'history_folder':out_history,
                                             'final_layer':'sigmoid',
                                             'preprocessing':prep
                                         }
-                                        train.train_model(**args)
+                                        args['model_name'] = train.train_model(**args)
+                                        args['validation_folder'] = out_validation
+                                        
+                                        args['csv_path'] = validation.validate(**args)
