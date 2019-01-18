@@ -6,11 +6,13 @@ import re
 
 def generate_plots(**kwargs):
 
-    csv_list = pd.read_csv('list.csv')
+    csv_list = pd.read_csv('list.csv', header=None)
     csv_list = csv_list.iloc[:,0].values
     frames = []
     for csv in csv_list:
         frames.append(pd.read_csv(csv))
+        generate_budwise_plots(csv)
+
 
     full_validation = pd.concat(frames)
     threshold_list = full_validation['threshold'].unique()
@@ -19,22 +21,22 @@ def generate_plots(**kwargs):
     fcn16 = full_validation.loc[full_validation.model_name.str.contains('FCMN16'),:]
     fcn32 = full_validation.loc[full_validation.model_name.str.contains('FCMN32'),:]
 
-'''
-    Lista de Plots a Generar:
-        PixelWise Metrics:
-            Barplots de Precision, Recall e IoU
-                x: 3 arquitecturas a cada threshold
-                y: valor de la metrica [0,1]
-        BudWise Metrics:
-            Distancia Euclideana entre centros de masa normalizada
-                x: thresholds
-                y: valor de distancia normalizado promedio y error promedio
-            Una vez definido cuando se detecta una yema
-            ROC Curve Precision X Recall:
-                x: Recall
-                y: Precision
-                z: Threshold
-'''
+    '''
+        Lista de Plots a Generar:
+            PixelWise Metrics:
+                Barplots de Precision, Recall e IoU
+                    x: 3 arquitecturas a cada threshold
+                    y: valor de la metrica [0,1]
+            BudWise Metrics:
+                Distancia Euclideana entre centros de masa normalizada
+                    x: thresholds
+                    y: valor de distancia normalizado promedio y error promedio
+                Una vez definido cuando se detecta una yema
+                ROC Curve Precision X Recall:
+                    x: Recall
+                    y: Precision
+                    z: Threshold
+    '''
     iou_mean_8s = []
     iou_std_8s = []
     iou_mean_16s = []
@@ -74,8 +76,8 @@ def generate_plots(**kwargs):
     ax.legend()
     fig = plt.gcf()
     fig.set_size_inches(18.5, 10.5)
-    plt.savefig('barplot_iou.png')
-######################################
+    plt.savefig(os.path.join(kwargs['output_path'], 'barplot_iou.png'))
+    ######################################
     prec_mean_8s = []
     prec_std_8s = []
     prec_mean_16s = []
@@ -141,8 +143,8 @@ def generate_plots(**kwargs):
     ax.legend()
     fig = plt.gcf()
     fig.set_size_inches(18.5, 10.5)
-    plt.savefig('barplot_precision.png')
-##################
+    plt.savefig(os.path.join(kwargs['output_path'], 'barplot_precision.png'))
+    ##################
     rec_mean_8s = []
     rec_std_8s = []
     rec_mean_16s = []
@@ -183,4 +185,67 @@ def generate_plots(**kwargs):
     ax.legend()
     fig = plt.gcf()
     fig.set_size_inches(18.5, 10.5)
-    plt.savefig('barplot_recall.png')
+    plt.savefig(os.path.join(kwargs['output_path'], 'barplot_recall.png'))
+
+
+
+def generate_budwise_plots(csv_path, output_path):
+
+    validation_data = pd.read_csv(csv_path)
+    ground_truth = pd.read_csv('single_instance_dataset_wradius.csv')
+    threshold_list = validation_data['threshold'].unique()
+    csv_name = validation_data['model_name'].unique()
+    os.makedirs(os.path.join(output_path, csv_name[0]))
+    ########################
+
+    mean_norm_dist = []
+    acum = []
+    error_norm_dist = []
+    for i in np.arange(0,len(threshold_list)):
+        acum = []
+        th_slice = validation_data.loc[validation_data['threshold'] == threshold_list[i]]
+        for j in np.arange(th_slice.shape[0]):
+            if (np.isnan(th_slice['euclidean_distance'].values[j])):
+                continue
+            else:
+                row = ground_truth.loc[ground_truth['imageOrigin'] == th_slice['sample'].values[j]]
+                acum.append(th_slice['euclidean_distance'].values[j] / ((row['diam_resize'].values[0]/2)))
+        mean_norm_dist.append(np.mean(acum))
+        error_norm_dist.append(np.std(acum))
+    # for i in np.arange(0,len(threshold_list)):
+    #     yerr.append(th_list[i]['euclidean_distance'].std())
+    plt.errorbar(threshold_list, mean_norm_dist,yerr=error_norm_dist, linestyle='None', marker='.', ecolor='orange',markersize=10)
+    plt.xticks(threshold_list)
+    plt.xlabel('Threshold')
+    plt.ylabel('Euclidean Distance Normalized by Bud Diameter')
+    plt.tight_layout()
+    fig = plt.gcf()
+    fig.set_size_inches(18.5, 10.5)
+    plt.savefig('errorbar_norm_dist_by_threshold.png')
+    ###########
+    for i in np.arange(0,len(threshold_list)):
+        acum = []
+        th_slice = validation_data.loc[validation_data['threshold'] == threshold_list[i]]
+        for j in np.arange(th_slice.shape[0]):
+                if (np.isnan(th_slice['euclidean_distance'].values[j])):
+                    acum.append(9)
+                else:
+                    row = ground_truth.loc[ground_truth['imageOrigin'] == th_slice['sample'].values[j]]
+                    acum.append(th_slice['euclidean_distance'].values[j] / ((row['diam_resize'].values[0]/2)))
+    plt.scatter(x=np.arange(0,len(acum)),y=acum)
+    plt.yticks(np.arange(0,12,0.3))
+    plt.ylabel('normalized euclidean distance between mass centers')
+    plt.title('Normalized Distance at ' + str((i+1)/10) + ' threshold')
+    plt.xlabel('Samples')
+    plt.tight_layout()
+    fig = plt.gcf()
+    fig.set_size_inches(18.5, 10.5)
+    plt.savefig(os.path.join(output_path, csv_name[0] ,'scatter_norm_dist_' + str((i+1)/10) + '.png')
+
+
+
+if (__name__ == "__main__"):
+    args = {
+        'output_path': os.path.join('.','output', 'plots')
+    }
+    generate_plots(args)
