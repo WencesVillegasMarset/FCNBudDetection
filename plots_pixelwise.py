@@ -11,7 +11,7 @@ def generate_plots(**kwargs):
     frames = []
     for csv in csv_list:
         frames.append(pd.read_csv(csv))
-        generate_budwise_plots(csv)
+        generate_budwise_plots(csv, kwargs['output_path'])
 
 
     full_validation = pd.concat(frames)
@@ -78,6 +78,9 @@ def generate_plots(**kwargs):
     fig.set_size_inches(18.5, 10.5)
     plt.savefig(os.path.join(kwargs['output_path'], 'barplot_iou.png'))
     ######################################
+
+    plt.clf()
+
     prec_mean_8s = []
     prec_std_8s = []
     prec_mean_16s = []
@@ -145,6 +148,9 @@ def generate_plots(**kwargs):
     fig.set_size_inches(18.5, 10.5)
     plt.savefig(os.path.join(kwargs['output_path'], 'barplot_precision.png'))
     ##################
+
+    plt.clf()
+
     rec_mean_8s = []
     rec_std_8s = []
     rec_mean_16s = []
@@ -196,7 +202,9 @@ def generate_budwise_plots(csv_path, output_path):
     threshold_list = validation_data['threshold'].unique()
     csv_name = validation_data['model_name'].unique()
     os.makedirs(os.path.join(output_path, csv_name[0]))
+
     ########################
+    plt.clf()
 
     mean_norm_dist = []
     acum = []
@@ -212,8 +220,6 @@ def generate_budwise_plots(csv_path, output_path):
                 acum.append(th_slice['euclidean_distance'].values[j] / ((row['diam_resize'].values[0]/2)))
         mean_norm_dist.append(np.mean(acum))
         error_norm_dist.append(np.std(acum))
-    # for i in np.arange(0,len(threshold_list)):
-    #     yerr.append(th_list[i]['euclidean_distance'].std())
     plt.errorbar(threshold_list, mean_norm_dist,yerr=error_norm_dist, linestyle='None', marker='.', ecolor='orange',markersize=10)
     plt.xticks(threshold_list)
     plt.xlabel('Threshold')
@@ -221,9 +227,12 @@ def generate_budwise_plots(csv_path, output_path):
     plt.tight_layout()
     fig = plt.gcf()
     fig.set_size_inches(18.5, 10.5)
-    plt.savefig('errorbar_norm_dist_by_threshold.png')
+    plt.savefig(os.path.join(output_path, 'errorbar_norm_dist_by_threshold.png'))
+
     ###########
+    plt.clf()
     for i in np.arange(0,len(threshold_list)):
+        plt.clf()
         acum = []
         th_slice = validation_data.loc[validation_data['threshold'] == threshold_list[i]]
         for j in np.arange(th_slice.shape[0]):
@@ -232,20 +241,21 @@ def generate_budwise_plots(csv_path, output_path):
                 else:
                     row = ground_truth.loc[ground_truth['imageOrigin'] == th_slice['sample'].values[j]]
                     acum.append(th_slice['euclidean_distance'].values[j] / ((row['diam_resize'].values[0]/2)))
-    plt.scatter(x=np.arange(0,len(acum)),y=acum)
-    plt.yticks(np.arange(0,12,0.3))
-    plt.ylabel('normalized euclidean distance between mass centers')
-    plt.title('Normalized Distance at ' + str((i+1)/10) + ' threshold')
-    plt.xlabel('Samples')
-    plt.tight_layout()
-    fig = plt.gcf()
-    fig.set_size_inches(18.5, 10.5)
-    plt.savefig(os.path.join(output_path, csv_name[0] ,'scatter_norm_dist_' + str((i+1)/10) + '.png')
+        plt.scatter(x=np.arange(0,len(acum)),y=acum)
+        plt.yticks(np.arange(0,12,0.3))
+        plt.ylabel('normalized euclidean distance between mass centers')
+        plt.title('Normalized Distance at ' + str((i+1)/10) + ' threshold')
+        plt.xlabel('Samples')
+        plt.tight_layout()
+        fig = plt.gcf()
+        fig.set_size_inches(18.5, 10.5)
+        plt.savefig(os.path.join(output_path, csv_name[0] ,'scatter_norm_dist_' + str((i+1)/10) + '.png'))
 
 
-
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     args = {
         'output_path': os.path.join('.','output', 'plots')
     }
-    generate_plots(args)
+    generate_plots(**args)
+
+
