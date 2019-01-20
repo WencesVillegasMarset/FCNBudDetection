@@ -202,7 +202,9 @@ def generate_budwise_plots(csv_path, output_path):
     ground_truth = pd.read_csv('single_instance_dataset_wradius.csv')
     threshold_list = validation_data['threshold'].unique()
     csv_name = validation_data['model_name'].unique()
-    os.makedirs(os.path.join(output_path, csv_name[0]))
+    if not os.path.exists(os.path.join(output_path, csv_name[0])):
+        os.makedirs(os.path.join(output_path, csv_name[0]))
+    
 
     ########################
     plt.clf()
@@ -228,7 +230,7 @@ def generate_budwise_plots(csv_path, output_path):
     plt.tight_layout()
     fig = plt.gcf()
     fig.set_size_inches(18.5, 10.5)
-    plt.savefig(os.path.join(output_path, 'errorbar_norm_dist_by_threshold.png'))
+    plt.savefig(os.path.join(output_path, csv_name[0], 'errorbar_norm_dist_by_threshold.png'))
 
     ###########
     plt.clf()
@@ -251,7 +253,7 @@ def generate_budwise_plots(csv_path, output_path):
         fig = plt.gcf()
         fig.set_size_inches(18.5, 10.5)
         plt.savefig(os.path.join(output_path, csv_name[0] ,'scatter_norm_dist_' + str((i+1)/10) + '.png'))
-
+    print('Plots for' + csv_name[0] + ' generated!')
 
 if __name__ == "__main__":
     
