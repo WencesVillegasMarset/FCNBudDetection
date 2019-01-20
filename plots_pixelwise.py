@@ -1,17 +1,18 @@
-import os 
+import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import re 
 
 def generate_plots(**kwargs):
+    print('Estoy en generate_plots')
 
     csv_list = pd.read_csv('list.csv', header=None)
     csv_list = csv_list.iloc[:,0].values
     frames = []
     for csv in csv_list:
-        frames.append(pd.read_csv(csv))
-        generate_budwise_plots(csv, kwargs['output_path'])
+        frames.append(pd.read_csv(os.path.join(kwargs['source_path'],csv)))
+        generate_budwise_plots(os.path.join(kwargs['source_path'],csv), kwargs['output_path'])
 
 
     full_validation = pd.concat(frames)
@@ -253,8 +254,11 @@ def generate_budwise_plots(csv_path, output_path):
 
 
 if __name__ == "__main__":
+    
+    print('Llamando a generate_plots')
     args = {
-        'output_path': os.path.join('.','output', 'plots')
+        'output_path': os.path.join('.','output', 'plots'),
+        'source_path': os.path.join('.', 'output', 'validation')
     }
     generate_plots(**args)
 

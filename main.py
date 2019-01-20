@@ -11,10 +11,11 @@ if __name__ == "__main__":
     optimizer_list = ['rmsprop']
     lr_decay_list = [0] #['0', '0.0005'] 
     preprocessing_list = [True]
-    epoch_list = [200]
+    epoch_list = [150]
     #load dataset csv
     train_set_full = pd.read_csv(os.path.join('/home','wvillegas','dataset-mask', 'single_instance_train.csv'))
     train_set_array = train_set_full['imageOrigin'].values
+    test_set = pd.read_csv(os.path.join('/home','wvillegas','dataset-mask', 'single_instance_test.csv'))
 #     split it into 4 folds
 #     kf = KFold(n_splits = 4, shuffle=False)
 #     train_indexes = []
@@ -35,8 +36,9 @@ if __name__ == "__main__":
         os.makedirs(out_history) 
     if not os.path.exists(out_validation):
         os.makedirs(out_validation)
-
-    labels = dict(zip(list(train_set_full['imageOrigin'].values), list(train_set_full['mask'].values)))
+    
+    dataset_full = pd.read_csv(os.path.join('/home','wvillegas','dataset-mask', 'single_instance_corpus.csv'))
+    labels = dict(zip(list(dataset_full['imageOrigin'].values), list(dataset_full['mask'].values)))
 
     models = []
     for model in model_list:
@@ -44,7 +46,7 @@ if __name__ == "__main__":
 #             partition = {'train':list(train_set_array[train_indexes[fold]]),
 #                 'valid': list(train_set_array[test_indexes[fold]])}
             partition = {'train':list(train_set_full['imageOrigin'].values),
-                           'valid':[] }
+                           'valid':list(test_set['imageOrigin'].values) }
             for bs in batch_size_list:
                 for decay in lr_decay_list:
                     for lr in lr_list:

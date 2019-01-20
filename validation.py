@@ -27,7 +27,7 @@ def validate(**kwargs):
             list_IDs=kwargs['partition']['valid'],n_channels=3, n_channels_label=1,shuffle=False,mask_path=kwargs['masks_path'])
         
     model = models.load_model(os.path.join('.','output', 'models', kwargs['model_name']+'.h5'))
-    prediction = model.predict_generator(generator=valid_generator,use_multiprocessing=True,workers=6, verbose=True)
+    prediction = model.predict_generator(generator=valid_generator, use_multiprocessing=True, workers=6, verbose=True)
 
 
     threshold_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
@@ -110,8 +110,9 @@ def validate(**kwargs):
     return csv_path
 
 if __name__ == "__main__":
-    list_models = pd.read_csv('models_to_validate.csv')
-    list_models = list_models.iloc[:,0]
+    list_models = pd.read_csv('models_to_validate.csv', header=None)
+    list_models = list_models.iloc[:,0].values
+    print(list_models)
     args = {}
     for model in list_models:
         if(re.search(r'mobilenet', model) != None):
@@ -128,6 +129,7 @@ if __name__ == "__main__":
 
         args['labels'] = dict(zip(list(test_set['imageOrigin'].values), list(test_set['mask'].values)))
         args['model_name'] = model
-        args['img_path'] = os.path.join('/home','wvillegas','dataset-mask','dataset_resize', 'images_resize'),
-        args['masks_path'] = os.path.join('/home','wvillegas','dataset-mask','dataset_resize', 'masks_resize'),
+        args['img_path'] = os.path.join('/home','wvillegas','dataset-mask','dataset_resize', 'images_resize')
+        args['masks_path'] = os.path.join('/home','wvillegas','dataset-mask','dataset_resize', 'masks_resize')
         args['validation_folder'] = os.path.join('.','output','validation')
+        validate(**args)
