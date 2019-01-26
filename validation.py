@@ -68,7 +68,7 @@ def validate(**kwargs):
             pred = (pred > threshold).astype(bool)
             #save sample name
             valid_metrics['sample'].append(test_images[i])
-            cv2.imwrite(os.path.join(mask_output_path, str(threshold) + '_' + test_images[i] + '.png'), pred)
+            cv2.imwrite(os.path.join(mask_output_path, str(threshold) + '_' + test_images[i] + '.png'), np.uint8(pred)*255)
             #get mask and preprocess
             mask_name = labels[test_images[i]]
             mask = cv2.imread(kwargs['masks_path'] + '/' + mask_name)
