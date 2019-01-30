@@ -29,8 +29,7 @@ def validate(**kwargs):
     model = models.load_model(os.path.join('.','output', 'models', kwargs['model_name']+'.h5'))
     prediction = model.predict_generator(generator=valid_generator, use_multiprocessing=True, workers=6, verbose=True)
 
-    #TODO Guardar mascaras resultantes
-    mask_output_path = os.path.join(kwargs['validation_folder'], kwargs['model_name'])
+    mask_output_path = os.path.join(kwargs['validation_folder'], kwargs['model_name'], 'prediction_masks')
     if not os.path.exists(mask_output_path):
         os.makedirs(mask_output_path)
     
@@ -68,7 +67,7 @@ def validate(**kwargs):
             pred = (pred > threshold).astype(bool)
             #save sample name
             valid_metrics['sample'].append(test_images[i])
-            cv2.imwrite(os.path.join(mask_output_path, str(threshold) + '_' + test_images[i] + '.png'), pred)
+            cv2.imwrite(os.path.join(mask_output_path, str(threshold).replace('.','') + '_' + test_images[i].replace('.jpg','') + '.png'), pred)
             #get mask and preprocess
             mask_name = labels[test_images[i]]
             mask = cv2.imread(kwargs['masks_path'] + '/' + mask_name)
