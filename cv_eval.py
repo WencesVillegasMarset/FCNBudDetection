@@ -68,7 +68,7 @@ def validate(**kwargs):
             model_rec.append(intersection / mask_area)
             if (prediction_area == 0):
                 model_nans +=1
-            _, num_components = cv2.connectedComponents(pred)
+            _, num_components = cv2.connectedComponents(pred.astype(np.uint8))
             model_components += num_components
         
         valid_metrics['iou_mean'].append(np.mean(model_iou))
