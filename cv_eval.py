@@ -33,7 +33,7 @@ def validate(**kwargs):
             'prec_mean':[],
             'prec_std':[],
             'rec_mean':[],
-            'red_std':[],
+            'rec_std':[],
             'num_nans':[],
             'num_components':[]
             }
