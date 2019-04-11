@@ -79,6 +79,11 @@ def labeled_img_to_rgb(mask, labels):
 def run(args):
     start = time.clock()
     model_name = os.path.split(args.h5)[1]
+    #create model output folder if it doesnt exist already
+    output_path = os.path.join('.', 'output', 'validation', model_name[::-3])
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
+
     ground_truth_csv = pd.read_csv('../single_instance_dataset_wradius.csv')
     test_set_csv = pd.read_csv(os.path.join('/home','wvillegas','dataset-mask', 'single_instance_test.csv'))
     test_set_images = test_set['imageOrigin'].values
@@ -92,6 +97,8 @@ def run(args):
 
     valid_generator = DataGeneratorMobileNetKeras(batch_size=1,img_path=img_path, labels=labels,
             list_IDs=partition['valid'],n_channels=3, n_channels_label=1,shuffle=False,mask_path=masks_path)
+
+
 
 
     model = models.load_model(args.h5)
@@ -170,8 +177,10 @@ def run(args):
 
     print(str(time.clock() - start) + ' seconds') 
     data = pd.DataFrame(metrics)
-    data.to_csv(os.path.join('.', 'output', 'validation', model_name[::-3], 'postprocessing_validation.csv'))
+    data.to_csv(os.path.join(output_path, 'postprocessing_validation.csv'))
+    print("Generating plots!")
 
+    
         
 
         
