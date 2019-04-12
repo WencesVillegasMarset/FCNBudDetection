@@ -79,8 +79,9 @@ def labeled_img_to_rgb(mask, labels):
 def run(args):
     start = time.clock()
     model_name = os.path.split(args.h5)[1]
+    model_name = model_name[:-3]
     #create model output folder if it doesnt exist already
-    output_path = os.path.join('.', 'output', 'validation', model_name[::-3])
+    output_path = os.path.join('.', 'output', 'validation', model_name)
     if not os.path.exists(output_path):
         os.makedirs(output_path)
 
@@ -177,9 +178,45 @@ def run(args):
 
     print(str(time.clock() - start) + ' seconds') 
     data = pd.DataFrame(metrics)
-    data.to_csv(os.path.join(output_path, 'postprocessing_validation.csv'))
+    data.to_csv(os.path.join(output_path, model_name+'_postprocessing.csv'))
+
+
     print("Generating plots!")
 
+    threshold_list = data['threshold'].unique()
+    nan_list = []
+    for threshold in threshold_list:
+        th_extracted = data.loc[data['threshold'] == threshold,:]
+        nan_list.append(th_extracted.loc[th_extracted['buds_predicted'] == 0,:].shape[0])
+
+    prec_list = []
+    for th in threshold_list:
+        th_extracted = data.loc[data['threshold'] == th,:]
+        true_positives = th_extracted.loc[th_extracted['buds_predicted']>=1,:].shape[0]
+        false_positives = th_extracted['buds_predicted'].sum() - true_positives
+        prec_list.append(true_positives / (true_positives + false_positives))
+    plt.bar(x=threshold_list, height=prec_list)
+    plt.title(nan_list)
+    fig = plt.gcf()
+    fig.set_size_inches(18.5, 10.5)
+    plt.savefig(os.path.join(output_path, model_name+'_precision.png'))
+
+    plt.clf()
+
+
+    rec_list = []
+    for threshold in threshold_list:
+        th_extracted = data.loc[data['threshold'] == threshold,:]
+        #aquellos patches en los que se predijo una yema
+        true_positives = th_extracted.loc[th_extracted['buds_predicted']==1,:].shape[0] 
+        # aquellos en los que no se predijeron ninguna
+        false_negatives = th_extracted.loc[th_extracted['buds_predicted']==0,:].shape[0] 
+        rec_list.append(true_positives / (true_positives + false_negatives))
+    plt.bar(x=threshold_list, height=rec_list, align='center',tick_label=threshold_list)
+    plt.title(nan_list)
+    fig = plt.gcf()
+    fig.set_size_inches(18.5, 10.5)
+    plt.savefig(os.path.join(output_path, model_name+'_recall.png'))
     
         
 
