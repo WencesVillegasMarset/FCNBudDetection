@@ -85,7 +85,7 @@ def run(args):
     if not os.path.exists(output_path):
         os.makedirs(output_path)
 
-    ground_truth_csv = pd.read_csv('../single_instance_dataset_wradius.csv')
+    ground_truth_csv = pd.read_csv('./single_instance_dataset_wradius.csv')
     test_set_csv = pd.read_csv(os.path.join('/home','wvillegas','dataset-mask', 'single_instance_test.csv'))
     test_set_images = test_set['imageOrigin'].values
     partition = {

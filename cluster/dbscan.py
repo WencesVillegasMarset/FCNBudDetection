@@ -77,8 +77,11 @@ if __name__ == "__main__":
         metrics['min_samples'].append(50)
         
         print('Processing :' + img)
+        
         # cluster image and get a labeled image where each pixel has a label value and a number of labels (ignoring 0 and -1)
-        labeled_img, num_labels = dbscan(utils_cluster.preprocess_image(utils_cluster.read_image_grayscale(os.path.join(base_images_path, img))),10,50)
+        image_data = utils_cluster.preprocess_image(utils_cluster.read_image_grayscale(os.path.join(base_images_path, img)))
+        #image_data = utils_cluster.filter_out_background_px(image_data)
+        labeled_img, num_labels = dbscan(image_data,10,50)
         
         
         utils_cluster.save_image(labeled_img_to_rgb(labeled_img, num_labels), os.path.join(model_validation_folder,'clustered_masks'), 'cluster_'+img)

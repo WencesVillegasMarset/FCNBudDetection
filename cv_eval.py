@@ -93,10 +93,7 @@ if __name__ == "__main__":
     print(list_models)
     args = {}
     for model in list_models:
-        if(re.search(r'mobilenet', model) != None):
-            args['preprocessing'] = True
-        else:
-            args['preprocessing'] = False
+        args['preprocessing'] = True
 
         test_set = pd.read_csv(os.path.join('/home','wvillegas','dataset-mask', 'single_instance_test.csv'))
         test_set_array = test_set['imageOrigin'].values

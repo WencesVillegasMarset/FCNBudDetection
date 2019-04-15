@@ -9,6 +9,10 @@ def get_sample_name(str):
 def remove_extension_from_filename(str):
     return (str.split('.')[0])
 
+def filter_out_background_px(array):
+    new_array = array[array[:,0] > 0]
+    return new_array
+
 
 def get_sample_ground_truth(sample_name, csv):
     name = (sample_name.split('.')[0]).split('_')[1] + '.jpg'
