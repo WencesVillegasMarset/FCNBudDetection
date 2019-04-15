@@ -158,7 +158,7 @@ def run(args):
                 metrics['true_positive_distance'].append(min(distance_list))
                 metrics['true_positive_x'].append(temp_correspondence[min(distance_list)][0])
                 metrics['true_positive_y'].append(temp_correspondence[min(distance_list)][1])
-                metrics['true_positive_norm_distance'].append(min(distance_list))
+                metrics['true_positive_norm_distance'].append(min(distance_list)/(ground_truth_csv['diam_resize']/2))
             else: #no buds detected register it in the metrics dict
                 metrics['true_positive_distance'].append(np.nan)
                 metrics['true_positive_x'].append(np.nan)

@@ -28,27 +28,22 @@ def validate(**kwargs):
     valid_metrics = {
             'model_name': [],
             'threshold':[],
-            'iou_std': [],
-            'iou_mean':[],
-            'prec_mean':[],
-            'prec_std':[],
-            'rec_mean':[],
-            'rec_std':[],
-            'num_nans':[],
+            'sample_name': [],
+            'iou':[],
+            'precision':[],
+            'recall':[],
+            'intersection':[],
+            'union':[],
+            'gt_area':[],
+            'segmentation_area':[],
             'num_components':[]
             }
     for threshold in threshold_list:  
-        valid_metrics['model_name'].append(kwargs['model_name'])
-        valid_metrics['threshold'].append(threshold)
-
-        model_iou = []
-        model_prec = []
-        model_rec = []
-        model_nans = 0
-        model_components = 0
-
         array_pred = np.copy(prediction)
         for i in np.arange(0,prediction.shape[0]):
+            valid_metrics['model_name'].append(kwargs['model_name'])
+            valid_metrics['threshold'].append(threshold)
+            valid_metrics['sample_name'].append(test_images[i])
             #get prediction and normalize
             pred = array_pred[i,:,:,0]
             pred = (pred > threshold).astype(bool)
@@ -63,22 +58,18 @@ def validate(**kwargs):
             union = np.sum(np.logical_or(pred, mask))
             prediction_area = np.sum(pred)
             mask_area = np.sum(mask)
-            model_iou.append(intersection / union)
-            model_prec.append(intersection/prediction_area)
-            model_rec.append(intersection / mask_area)
+            valid_metrics['intersection'].append(intersection)
+            valid_metrics['union'].append(union)
+            valid_metrics['gt_area'].append(mask_area)
+            valid_metrics['segmentation_area'].append(prediction_area)
+            valid_metrics['iou'].append(intersection / union)
+            valid_metrics['precision'].append(intersection/prediction_area)
+            valid_metrics['recall'].append(intersection / mask_area)
             if (prediction_area == 0):
-                model_nans +=1
+                valid_metrics['num_components'].append(0)
             _, num_components = cv2.connectedComponents(pred.astype(np.uint8))
-            model_components += num_components
-        
-        valid_metrics['iou_mean'].append(np.mean(model_iou))
-        valid_metrics['iou_std'].append(np.std(model_iou))
-        valid_metrics['prec_mean'].append(np.mean(model_prec))
-        valid_metrics['prec_std'].append(np.std(model_prec))
-        valid_metrics['rec_mean'].append(np.mean(model_rec))
-        valid_metrics['rec_std'].append(np.std(model_rec))
-        valid_metrics['num_nans'].append(model_nans)
-        valid_metrics['num_components'].append(model_components)
+            valid_metrics['num_components'].append(num_components-1)
+
 
     data = pd.DataFrame(valid_metrics)
     csv_path = os.path.join(kwargs['validation_folder'],'final_cv', kwargs['model_name'] + '.csv')
