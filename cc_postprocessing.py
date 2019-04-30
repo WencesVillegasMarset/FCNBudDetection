@@ -203,15 +203,6 @@ def run(args):
 
     plt.clf()
 
-    for th in threshold_list:
-        th_extracted = data.loc[data['threshold'] == th,:]
-        out = pd.cut(th_extracted['true_positive_norm_distance'].values, bins=[0,0.2,0.4,0.6,0.8,1,1.5,2,4,8,16], include_lowest=True)
-        out.value_counts().plot.bar(rot=0, color="b", figsize=(12,6))
-        plt.title([str(out.value_counts().values[i]) for i in range(out.value_counts().values.shape[0])])
-        plt.xlabel('Normalized Distance of the true positive cluster')
-        plt.ylabel('Number of samples')
-        plt.savefig(os.path.join(output_path, str(th) + model_name +'_distance_bar.png'))
-
 
     rec_list = []
     for threshold in threshold_list:
@@ -227,6 +218,16 @@ def run(args):
     fig.set_size_inches(18.5, 10.5)
     plt.savefig(os.path.join(output_path, model_name+'_recall.png'))
     
+    plt.clf()
+
+    for th in threshold_list:
+        th_extracted = data.loc[data['threshold'] == th,:]
+        out = pd.cut(th_extracted['true_positive_norm_distance'].values, bins=[0,0.2,0.4,0.6,0.8,1,1.5,2,4,8,16], include_lowest=True)
+        out.value_counts().plot.bar(rot=0, color="b", figsize=(12,6))
+        plt.title([str(out.value_counts().values[i]) for i in range(out.value_counts().values.shape[0])])
+        plt.xlabel('Normalized Distance of the true positive cluster')
+        plt.ylabel('Number of samples')
+        plt.savefig(os.path.join(output_path, str(th) + model_name +'_distance_bar.png'))
         
 
         

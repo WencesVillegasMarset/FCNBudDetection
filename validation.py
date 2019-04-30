@@ -5,6 +5,7 @@ import models
 from utils import DataGeneratorMobileNetKeras, DataGeneratorMobileNet
 import re
 
+
 def mass_center(mask):
     #calculate mass center from top-left corner
     x_by_mass = 0
@@ -15,6 +16,28 @@ def mass_center(mask):
         y_by_mass += np.sum(x * mask[x,:])
 
     return((x_by_mass/total_mass, y_by_mass/total_mass))
+
+def connected_components_with_threshold(image, threshold):
+    '''
+        Function that takes a mask and filters its component given a provided threshold
+        this returns the number of resulting components and a new filtered mask (tuple) 
+    '''
+    num_components, mask = cv2.connectedComponents(image)
+    filtered_mask = np.zeros_like(image, dtype=np.uint8)
+    component_list = []
+    mass_center_array = []
+
+    for component in np.arange(1, num_components):
+        isolated_component = (mask == component)
+        if np.sum(isolated_component) >= threshold:
+            mass_center_array.append(mass_center(isolated_component.astype(int)))
+            filtered_mask += isolated_component
+            component_list.append(component)
+    if len(component_list) == 0:   
+        mass_center_array = np.nan
+    return len(component_list), filtered_mask, (np.asarray(mass_center_array))
+
+
 
 #compute validation metrics
 def validate(**kwargs):
@@ -49,14 +72,13 @@ def validate(**kwargs):
             'segmentation_area':[],
             'gt_x_center':[],
             'gt_y_center':[],
-            'segmentation_x_center':[],
-            'segmentation_y_center':[],
-            'x_distance':[],
-            'y_distance':[],
+            'true_positive_x_center':[],
+            'true_positive_y_center':[],
             'euclidean_distance':[],
             'x_size':[],
-            'y_size':[]
-        }
+            'y_size':[],
+            'buds_predicted':[],
+            }
     for threshold in threshold_list:  
         array_pred = np.copy(prediction)
         for i in np.arange(0,prediction.shape[0]):
@@ -67,10 +89,8 @@ def validate(**kwargs):
             pred = (pred > threshold).astype(bool)
             #save sample name
             valid_metrics['sample'].append(test_images[i])
-            cv2.imwrite(os.path.join(mask_output_path, str(threshold).replace('.','') + '_' + test_images[i].replace('.jpg','') + '.png'), np.uint8(pred)*255)
             #get mask and preprocess
-            mask_name = labels[test_images[i]]
-            mask = cv2.imread(kwargs['masks_path'] + '/' + mask_name)
+            mask = cv2.imread(kwargs['masks_path'] + '/' + labels[test_images[i]])
             mask = cv2.resize(mask, (0,0), fx=0.5, fy=0.5)
             mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
             mask = mask.astype(bool)
@@ -87,28 +107,34 @@ def validate(**kwargs):
             valid_metrics['gt_area'].append(mask_area)
             valid_metrics['segmentation_area'].append(prediction_area)
             #compute mass centers without binarizing
-        array_pred = np.copy(prediction) #reset prediction array
-        for i in np.arange(0,prediction.shape[0]):
-            pred = array_pred[i,:,:,0]
-            pred[pred < threshold] = 0
-            #get mask
-            mask_name = labels[test_images[i]]
-            mask = cv2.imread(kwargs['masks_path'] + '/' + mask_name)
-            mask = cv2.resize(mask, (0,0), fx=0.5, fy=0.5)
-            mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
-            mask = mask.astype(bool)
-            gt_center = mass_center(mask)
-            segmentation_center = mass_center(pred)
-            distance = np.subtract(gt_center,segmentation_center)
+
+            gt_center = mass_center(mask) #grab ground truth center
             valid_metrics['gt_x_center'].append(gt_center[0])
             valid_metrics['gt_y_center'].append(gt_center[1])
-            valid_metrics['segmentation_x_center'].append(segmentation_center[0])
-            valid_metrics['segmentation_y_center'].append(segmentation_center[1])
-            valid_metrics['x_distance'].append(distance[0])
-            valid_metrics['y_distance'].append(distance[1])
-            valid_metrics['euclidean_distance'].append(np.linalg.norm(distance))
+
+            
             valid_metrics['x_size'].append(pred.shape[0])
             valid_metrics['y_size'].append(pred.shape[1])
+
+
+            num_labels, labeled_img, centers = connected_components_with_threshold(mask, 0)
+
+            if not np.any(np.isnan(centers)):
+                valid_metrics['buds_predicted'].append(centers.shape[0])
+                temp_correspondence = {}
+                for c in np.arange(centers.shape[0]):
+                    pred_center = centers[c]   
+                    distance_list.append(np.linalg.norm(np.subtract(gt_center,pred_center)))
+                    temp_correspondence[distance_list[c]] = pred_center
+                valid_metrics['euclidean_distance'].append(min(distance_list))
+                valid_metrics['true_positive_x_center'].append(temp_correspondence[min(distance_list)][0])
+                valid_metrics['true_positive_y_center'].append(temp_correspondence[min(distance_list)][1])
+            else: #no buds detected register it in the metrics dict
+                valid_metrics['euclidean_distance'].append(np.nan)
+                valid_metrics['true_positive_x_center'].append(np.nan)
+                valid_metrics['true_positive_y_center'].append(np.nan)
+                valid_metrics['buds_predicted'].append(0)
+            
     data = pd.DataFrame(valid_metrics)
     csv_path = os.path.join(kwargs['validation_folder'], kwargs['model_name'] + '.csv')
     data.to_csv(csv_path)
@@ -119,15 +145,12 @@ if __name__ == "__main__":
     list_models = pd.read_csv('models_to_validate.csv', header=None)
     list_models = list_models.iloc[:,0].values
     print(list_models)
+    test_set = pd.read_csv(os.path.join('/home','wvillegas','dataset-mask', 'single_instance_test.csv'))
+    test_set_array = test_set['imageOrigin'].values
     args = {}
     for model in list_models:
-        if(re.search(r'mobilenet', model) != None):
-            args['preprocessing'] = True
-        else:
-            args['preprocessing'] = False
-
-        test_set = pd.read_csv(os.path.join('/home','wvillegas','dataset-mask', 'single_instance_test.csv'))
-        test_set_array = test_set['imageOrigin'].values
+        args['preprocessing'] = True
+        
         args['partition'] = {
             'train':[],
             'valid':test_set_array
