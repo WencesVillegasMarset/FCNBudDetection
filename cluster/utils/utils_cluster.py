@@ -15,7 +15,7 @@ def filter_out_background_px(array):
 
 
 def get_sample_ground_truth(sample_name, csv):
-    name = (sample_name.split('.')[0]).split('_')[1] + '.jpg'
+    name = (sample_name.split('.')[1][1::])+'.jpg'
     return (csv.loc[csv['imageOrigin'] == name, :])
     
     
