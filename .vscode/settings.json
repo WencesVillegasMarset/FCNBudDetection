@@ -1,3 +1,5 @@
 {
-    "python.pythonPath": "/home/wences/Downloads/conda/envs/buddetection/bin/python"
+    "python.pythonPath": "C:\\Users\\Jorge\\Miniconda3\\envs\\budenv\\python.exe",
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true
 }
