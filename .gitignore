@@ -106,3 +106,4 @@ venv.bak/
 # local
 /output/
 /images/
+/inference_testing/multi_predictions/
